@@ -1,4 +1,8 @@
 ﻿@page "/cardapio"
+@using Restaurante.UI.Models
+@using System.Globalization
+@using System.Diagnostics
+
 <section class="justify-content-center my-5">
     <h3 class="text-center">Cardapio</h3>
     <div class="container">
@@ -15,7 +19,7 @@
                     <h5 class="card-title text-center">Esfihas Doces</h5>
                 </div>
             </div>
-            <div class="card fill text-white col-sm-4 col-md-2 m-1" >
+            <div class="card fill text-white col-sm-4 col-md-2 m-1">
                 <img class="card-img" src="/img/Cardapio/kibe.jpg" alt="">
                 <div class="card-img-overlay">
                     <h5 class="card-title text-center">Kibes</h5>
@@ -37,30 +41,40 @@
     </div>
 </section>
 
-<section class="container justify-content-center my-5">
-    <div class="row">
-        <table class="table col-lg-8 col-sm-12 p-lg-5 p-sm-1">
-          <tbody>
-            <tr>
-              <td class="text-center">X-Burguer</td>
-              <td class="text-center">R$ 23,00</td>
-              <td class="text-center">Adicionar</td>
-            </tr>
-            <tr>
-              <td class="text-center">X-Calabresa</td>
-              <td class="text-center">R$ 21,00</td>
-              <td class="text-center">Adicionar</td>
-            </tr>
-            <tr>
-              <td class="text-center">X-Salada</td>
-              <td class="text-center">R$ 18,00</td>
-              <td class="text-center">Adicionar</td>
-            </tr>
-          </tbody>
+<section class="container justify-content-center my-auto">
+    <div class="row px-lg-5">
+        <table class="table col-lg-8 col-sm-12 p-lg-5 p-sm-0 my-lg-5 my-sm-0">
+            <tbody>
+                @foreach (var product in _products)
+                {
+                    <tr class="justify-content-between">
+                        <td class="text-center">@product.Name</td>
+                        <td class="text-center">@product.Price.ToString("C", CultureInfo.CurrentCulture)</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-dark" @onclick="() => AddToShoppingCart(product)">Adicionar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
         </table>
     </div>
 </section>
 
 @code {
+    private Order _order = new() { Items = new List<OrderItem>() };
+    private List<Product> _products = new()
+    {
+        new Product { Id = 1, Name = "X-Burguer", Price = 23m },
+        new Product { Id = 2, Name = "X-Calabresa", Price = 21m },
+        new Product { Id = 3, Name = "X-Salada", Price = 18m },
+        new Product { Id = 3, Name = "X-Tudo", Price = 25m },
+        new Product { Id = 3, Name = "X-Delícia", Price = 22.79m }
+    };
 
+    public void AddToShoppingCart(Product product, int quantity = 1)
+    {
+        _order.Items.Add(new OrderItem { Product = product, ProductId = product.Id, Quantity = quantity });
+
+        Debug.WriteLine($"{product.Name} foi adicionado");
+    }
 }
