@@ -1,4 +1,6 @@
 using Dapper;
+using Restaurante.Data.Data;
+using Restaurante.Data.DbAccess;
 using Restaurante.Data.Models;
 using System.Collections.Generic;
 using System.Data;
@@ -44,49 +46,64 @@ public class AddressDataTest
         Assert.Equal(1, addresses.ToList().Count);
     }
 
-    [Fact]
+    //[Fact]
     public async Task GetDataAsync3()
     {
-        //var dictionary = new Dictionary<int, Order>();
-        //IEnumerable<User> orders = null;
-        //using (IDbConnection connection = new SqlConnection(connstr))
-        //{
-        //    orders = await connection.QueryAsync<Order, OrderItem, Product, Category, Address, Order>(
-        //        "spOrders_GetAll",
-        //        param: new { Id = 3 },
-        //        map: (o, oi, p, c, a) =>
-        //        {
-        //            Order orderEntity;
+        var dictionary = new Dictionary<int, Order>();
+        IEnumerable<Order> orders = null;
+        using (IDbConnection connection = new SqlConnection(connstr))
+        {
+            orders = await connection.QueryAsync<Order, OrderItem, Product, Category, Address, Order>(
+                "spOrders_GetByUserId",
+                param: new { UserId = 4 },
+                map: (order, orderItem, product, category, address) =>
+                {
+                    Order orderEntry;
 
-        //            if (dictionary.TryGetValue(o.Id, out orderEntity))
-        //            {
-        //                dictionary.Add(o.Id, orderEntity = o);
-        //            }
-        //            if (orderEntity.Address == null)
-        //            {
-        //                if (a == null)
-        //                {
-        //                    a = new Address();
-        //                }
-        //                orderEntity.Address = a;
-        //            }
-        //            if (orderEntity.Items == null)
-        //            {
-        //                orderEntity.Items = new();
-        //            }
-        //            if (oi != null)
-        //            {
-        //                oi.Product = p;
+                    if (!dictionary.TryGetValue(order.Id, out orderEntry))
+                    {
+                        orderEntry = order;
+                        orderEntry.Items = new();
+                        dictionary.Add(orderEntry.Id, orderEntry = order);
+                    }
+                    
+                    orderEntry.Address = address;
+                    
+                    if (orderItem is not null)
+                    {
+                        orderItem.Product = product;
+                        orderItem.Product.Category = category;
 
-        //                if (!orderEntity.Items.Any(i => i.OrderId == orderEntity.Id))
-        //                {
+                        if (!orderEntry.Items.Any(i => i.ProductId == orderItem.ProductId))
+                        {
+                            orderEntry.Items.Add(orderItem);
+                        }
+                    }
 
-        //                }
-        //            }
-        //        },
-        //        splitOn: "UserId,OrderId",
-        //        commandType: CommandType.StoredProcedure);
-        //}
-        //Assert.Equal(1, orders.ToList().Count);
+                    return orderEntry;
+                },
+                splitOn: "Quantity,Description,Name,Street",
+                commandType: CommandType.StoredProcedure);
+        }
+        Assert.Equal(3, orders.ToList().Count);
+    }
+    [Fact]
+    public async Task GetProducts()
+    {
+        IEnumerable<Product> products = null;
+        using (IDbConnection connection = new SqlConnection(connstr))
+        {
+            products = await connection.QueryAsync<Product, Category, Product>(
+            "spProducts_GetAll",
+            param: new { },
+            map: (product, category) =>
+            {
+                product.Category = category;
+                return product;
+            },
+            splitOn: "Id",
+            commandType: CommandType.StoredProcedure);
+            
+        }
     }
 }

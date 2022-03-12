@@ -1,42 +1,27 @@
 ﻿@page "/cardapio"
-@using Restaurante.UI.Models
+@using Restaurante.Data.Interfaces
 @using System.Globalization
 @using System.Diagnostics
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+@inject IProductData _productData
+@inject ICategoryData _categoryData
 
 <section class="justify-content-center my-5">
     <h3 class="text-center">Cardapio</h3>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="card fill text-white col-sm-4 col-md-2 m-1">
-                <img class="card-img" src="/img/Cardapio/esfiha.png" alt="">
-                <div class="card-img-overlay">
-                    <h5 class="card-title text-center">Esfihas</h5>
-                </div>
-            </div>
-            <div class="card fill text-white col-sm-4 col-md-2 m-1">
-                <img class="card-img" src="/img/Cardapio/esfiha doce.png" alt="">
-                <div class="card-img-overlay">
-                    <h5 class="card-title text-center">Esfihas Doces</h5>
-                </div>
-            </div>
-            <div class="card fill text-white col-sm-4 col-md-2 m-1">
-                <img class="card-img" src="/img/Cardapio/kibe.jpg" alt="">
-                <div class="card-img-overlay">
-                    <h5 class="card-title text-center">Kibes</h5>
-                </div>
-            </div>
-            <div class="card fill text-white col-sm-4 col-md-2 m-1">
-                <img class="card-img" src="/img/Cardapio/lanche.jpg" alt="">
-                <div class="card-img-overlay">
-                    <h5 class="card-title text-center">Lanches</h5>
-                </div>
-            </div>
-            <div class="card fill text-white col-sm-4 col-md-2 m-1">
-                <img class="card-img" src="/img/Cardapio/bebidas.jpg" alt="">
-                <div class="card-img-overlay">
-                    <h5 class="card-title text-center">Bebidas</h5>
-                </div>
-            </div>
+            @if (categories is not null)
+            {
+                @foreach (var category in categories)
+                {
+                    <div class="card fill text-white col-sm-4 col-md-2 m-1" @onclick="() => SelectProductsByCategory(category.Id)">
+                        <img class="card-img" src="/img/Cardapio/@(category.Name).jpg" alt="">
+                        <div class="card-img-overlay">
+                            <h5 class="card-title text-center"><a>@category.Name</a></h5>
+                        </div>
+                    </div>
+                }
+            }
         </div>
     </div>
 </section>
@@ -45,15 +30,21 @@
     <div class="row px-lg-5">
         <table class="table col-lg-8 col-sm-12 p-lg-5 p-sm-0 my-lg-5 my-sm-0">
             <tbody>
-                @foreach (var product in _products)
+                @if (products is not null)
                 {
-                    <tr class="justify-content-between">
-                        <td class="text-center">@product.Name</td>
-                        <td class="text-center">@product.Price.ToString("C", CultureInfo.CurrentCulture)</td>
-                        <td class="text-center">
-                            <button class="btn btn-outline-dark" @onclick="() => AddToShoppingCart(product)">Adicionar</button>
-                        </td>
-                    </tr>
+                    @foreach (var item in displayItems)
+                    {
+                        <tr class="justify-content-between">
+                            <td class="text-center">@item.Product.Name</td>
+                            <td class="text-center">@item.Product.Price.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td class="text-center">
+                                <NumberInput @bind-CurrentValue=item.Quantity />
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-outline-dark" @onclick="() => AddToShoppingCart(item)">Adicionar</button>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -61,20 +52,55 @@
 </section>
 
 @code {
-    private Order _order = new() { Items = new List<OrderItem>() };
-    private List<Product> _products = new()
-    {
-        new Product { Id = 1, Name = "X-Burguer", Price = 23m },
-        new Product { Id = 2, Name = "X-Calabresa", Price = 21m },
-        new Product { Id = 3, Name = "X-Salada", Price = 18m },
-        new Product { Id = 3, Name = "X-Tudo", Price = 25m },
-        new Product { Id = 3, Name = "X-Delícia", Price = 22.79m }
-    };
+    private Order order;
+    private IEnumerable<Product> products;
+    private List<OrderItem> displayItems = new();
+    private List<Category> categories;
 
-    public void AddToShoppingCart(Product product, int quantity = 1)
+    public void AddToShoppingCart(OrderItem item)
     {
-        _order.Items.Add(new OrderItem { Product = product, ProductId = product.Id, Quantity = quantity });
+        order ??= new Order { Items = new List<OrderItem>() };
+        order.Items.Add(item);
 
-        Debug.WriteLine($"{product.Name} foi adicionado");
+        _localStorage.SetItemAsync("ShoppingCartOrder", order);
+    }
+
+    private async Task SelectProductsByCategory(int categoryId)
+    {
+        await GetProductsByCategory(categoryId);
+        displayItems = new();
+        MapProductToDisplayItems();
+    }
+
+    private async Task GetProductsByCategory(int categoryId)
+    {
+        products = await _productData.GetProductByCategory(categoryId);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await _productData.GetAllProducts();
+        categories = (await _categoryData.GetAllCategories()).ToList();
+
+        foreach (var product in products)
+        {
+            displayItems.Add(new OrderItem { Product = product, ProductId = product.Id, Quantity = 1 });
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        order = await _localStorage.GetItemAsync<Order>("ShoppingCartOrder");
+        StateHasChanged();
+    }
+
+    private void MapProductToDisplayItems()
+    {
+        foreach (var product in products)
+        {
+            displayItems.Add(new OrderItem { Product = product, ProductId = product.Id, Quantity = 1 });
+        }
     }
 }

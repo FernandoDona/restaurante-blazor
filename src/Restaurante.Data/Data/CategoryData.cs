@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Restaurante.Data.Data;
-public class CategoryData
+public class CategoryData : ICategoryData
 {
     private readonly ISqlDataAccess _sqlDataAccess;
 

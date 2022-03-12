@@ -16,11 +16,73 @@ public class OrderData
 
     public Task<IEnumerable<Order>> GetAllOrders()
     {
-        return _sqlDataAccess.QueryAsync<Order, dynamic>("spOrders_GetAll", new { });
+        var dictionary = new Dictionary<int, Order>();
+
+        return _sqlDataAccess.QueryAsync<Order, OrderItem, Product, Category, Address, Order, dynamic>(
+            storedProcedure: "spOrders_GetAll", 
+            parameters: new { },
+            mapping: (order, orderItem, product, category, address) =>
+            {
+                Order orderEntry;
+
+                if (!dictionary.TryGetValue(order.Id, out orderEntry))
+                {
+                    orderEntry = order;
+                    orderEntry.Items = new();
+                    dictionary.Add(orderEntry.Id, orderEntry = order);
+                }
+
+                orderEntry.Address = address;
+
+                if (orderItem is not null)
+                {
+                    orderItem.Product = product;
+                    orderItem.Product.Category = category;
+
+                    if (!orderEntry.Items.Any(i => i.ProductId == orderItem.ProductId))
+                    {
+                        orderEntry.Items.Add(orderItem);
+                    }
+                }
+
+                return orderEntry;
+            },
+            splitOn: "Quantity,Description,Name,Street");
     }
 
     public Task<IEnumerable<Order>> GetOrderByUserId(int userId)
     {
-        return _sqlDataAccess.QueryAsync<Order, dynamic>("spOrders_GetAll", new { UserId = userId });
+        var dictionary = new Dictionary<int, Order>();
+
+        return _sqlDataAccess.QueryAsync<Order, OrderItem, Product, Category, Address, Order, dynamic>(
+            storedProcedure: "spOrders_GetByUserId",
+            parameters: new { UserId = userId },
+            mapping: (order, orderItem, product, category, address) =>
+            {
+                Order orderEntry;
+
+                if (!dictionary.TryGetValue(order.Id, out orderEntry))
+                {
+                    orderEntry = order;
+                    orderEntry.Items = new();
+                    dictionary.Add(orderEntry.Id, orderEntry = order);
+                }
+
+                orderEntry.Address = address;
+
+                if (orderItem is not null)
+                {
+                    orderItem.Product = product;
+                    orderItem.Product.Category = category;
+
+                    if (!orderEntry.Items.Any(i => i.ProductId == orderItem.ProductId))
+                    {
+                        orderEntry.Items.Add(orderItem);
+                    }
+                }
+
+                return orderEntry;
+            },
+            splitOn: "Quantity,Description,Name,Street");
     }
 }

@@ -1,4 +1,5 @@
-﻿CREATE PROCEDURE [dbo].[spProducts_GetAll]
+﻿CREATE PROCEDURE [dbo].[spProducts_GetByCategoryId]
+	@CategoryId int
 AS
 	SET NOCOUNT ON;
 	SELECT
@@ -12,5 +13,6 @@ AS
 	FROM Products p
 	INNER JOIN Categories c
 	ON p.CategoryId = c.Id
-	ORDER BY p.CategoryId
+	WHERE 
+		p.CategoryId = @CategoryId 
 GO

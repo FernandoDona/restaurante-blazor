@@ -4,8 +4,13 @@
 AS
 	SET NOCOUNT ON;
 	SELECT
-		p.*,
-		c.*
+		p.Id,
+		p.[Name],
+		p.Price,
+		p.[Description],
+		p.CategoryId,
+		c.Id,
+		c.[Name]
 	FROM Products p
 	INNER JOIN Categories c
 	ON p.CategoryId = c.Id

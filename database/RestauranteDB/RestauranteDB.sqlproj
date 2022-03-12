@@ -77,7 +77,7 @@
     <Build Include="dbo\Tables\OrderItem.sql" />
     <Build Include="dbo\StoredProcedures\spOrders_GetByUserId.sql" />
     <Build Include="dbo\StoredProcedures\spCategories_GetAll.sql" />
-    <Build Include="dbo\StoredProcedures\spOrders_GetAll_Json.sql" />
+    <Build Include="dbo\StoredProcedures\spProducts_GetByCategoryId.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="RestauranteDB.refactorlog" />

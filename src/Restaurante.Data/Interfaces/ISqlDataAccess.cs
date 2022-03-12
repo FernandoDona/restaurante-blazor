@@ -1,5 +1,5 @@
 ﻿
-namespace Restaurante.Data.DbAccess;
+namespace Restaurante.Data.Interfaces;
 
 public interface ISqlDataAccess
 {

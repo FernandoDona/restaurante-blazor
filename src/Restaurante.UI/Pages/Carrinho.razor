@@ -1,7 +1,64 @@
 ﻿@page "/carrinho"
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
 
-<h3>Carrinho</h3>
+<section class="mx-auto">
+    <div class="mx-lg-5 px-lg-5 px-1 py-2">
+        <h3 class="text-center p-2">Carrinho</h3>
+        <div>
+            @if (order?.Items is not null)
+            {
+                <ul class="list-group">
+                    @foreach (var item in order.Items)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @item.Product.Name
+                            <div>
+                                <NumberInput @bind-CurrentValue=item.Quantity Class="mx-lg-5 mx-3" OnChange="SetOrderInLocalStorage"/>
+                                <button class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remover</button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <div class="d-flex justify-content-end py-3">
+                    <button class="btn btn-dark" @onclick="FinishCart">Finalizar Pedido</button>
+                </div>
+            }
+            else
+            {
+                <p class="d-flex justify-content-center align-items-center my-5">
+                    O carrinho está vazio.
+                </p>
+            }
+        </div>
+    </div>
+
+</section>
 
 @code {
+    private Order order;
 
+    private async Task FinishCart()
+    {
+        await _localStorage.RemoveItemAsync("ShoppingCartOrder");
+        order = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        order = await _localStorage.GetItemAsync<Order>("ShoppingCartOrder");
+        StateHasChanged();
+    }
+
+    public void SetOrderInLocalStorage()
+    {
+        _localStorage.SetItemAsync("ShoppingCartOrder", order);
+    }
+
+    private async Task RemoveOrderItem(OrderItem orderItem)
+    {
+        order.Items.Remove(orderItem);
+        await _localStorage.SetItemAsync("ShoppingCartOrder", order);
+    }
 }

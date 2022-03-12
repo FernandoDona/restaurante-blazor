@@ -1,0 +1,31 @@
+﻿<div class="number-input @Class">
+    <button @onclick="DecrementCurrentValue">-</button>
+    <input class="quantity" name="quantity" @bind="@CurrentValue" type="number">
+    <button class="plus" @onclick="IncrementCurrentValue">+</button>
+</div>
+
+@code {
+    [Parameter]
+    public string Class { get; set; }
+    [Parameter]
+    public int CurrentValue { get; set; }
+    [Parameter]
+    public EventCallback<int> CurrentValueChanged { get; set; }
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    private async Task IncrementCurrentValue()
+    {
+        CurrentValue++;
+        await CurrentValueChanged.InvokeAsync(CurrentValue);
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task DecrementCurrentValue()
+    {
+        if (CurrentValue <= 1) return;
+        CurrentValue--;
+        await CurrentValueChanged.InvokeAsync(CurrentValue);
+        await OnChange.InvokeAsync();
+    }
+}
