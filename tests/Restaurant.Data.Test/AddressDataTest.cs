@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Xunit;
 
 namespace Restaurant.Data.Test;
-public class AddressDataTest
+public class AddressRepositoryTest
 {
     private string connstr = "Data Source=DESKTOP-GNK2VJC;Initial Catalog=RestauranteDB;Integrated Security=True;Connect Timeout=60;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
     //[Fact]
@@ -46,7 +46,7 @@ public class AddressDataTest
         Assert.Equal(1, addresses.ToList().Count);
     }
 
-    //[Fact]
+    [Fact]
     public async Task GetDataAsync3()
     {
         var dictionary = new Dictionary<int, Order>();
@@ -87,7 +87,7 @@ public class AddressDataTest
         }
         Assert.Equal(3, orders.ToList().Count);
     }
-    [Fact]
+    //[Fact]
     public async Task GetProducts()
     {
         IEnumerable<Product> products = null;

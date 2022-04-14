@@ -2,6 +2,7 @@
 @using Restaurante.Data.Interfaces
 @using System.Globalization
 @using System.Diagnostics
+
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 @inject IProductData _productData
 @inject ICategoryData _categoryData
@@ -62,7 +63,7 @@
         order ??= new Order { Items = new List<OrderItem>() };
         order.Items.Add(item);
 
-        _localStorage.SetItemAsync("ShoppingCartOrder", order);
+        _localStorage.SetItemAsync(SessionVariables.ShoppingCartOrder, order);
     }
 
     private async Task SelectProductsByCategory(int categoryId)
@@ -92,7 +93,7 @@
     {
         if (!firstRender) return;
 
-        order = await _localStorage.GetItemAsync<Order>("ShoppingCartOrder");
+        order = await _localStorage.GetItemAsync<Order>(SessionVariables.ShoppingCartOrder);
         StateHasChanged();
     }
 

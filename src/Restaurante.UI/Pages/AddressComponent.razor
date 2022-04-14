@@ -1,0 +1,71 @@
+﻿@using Restaurante.Data.Interfaces
+@using System.Security.Claims
+@using Restaurante.UI.Services
+@inject IAddressService AddressService
+@inject IAuthenticationService AuthenticationService
+
+<h4>Endereços</h4>
+@if (addresses?.Count > 0)
+{
+    <ul class="list-group">
+        @foreach (var address in addresses)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <input type="checkbox" checked=@address.MainAddress @onchange="(eventArgs) => UpdateMainAddress(address, eventArgs.Value)"/><label class="px-2">@address.Street, @address.Number, @address.City, @address.State</label>
+                </div>
+            </li>
+        }
+    </ul>
+}
+<div class="d-flex justify-content-end">
+    <button type="button" class="my-2 btn btn-dark btn-block" @onclick="AddNewAddress">Adicionar endereço</button>
+</div>
+
+
+@code {
+    [CascadingParameter]
+    public IModalService Modal { get; set; }
+    private List<Address> addresses = null;
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await AuthenticationService.GetUserIdAsync();
+
+        addresses = (await AddressService.GetAddressesByUserId(userId)).ToList();
+
+        if (addresses?.Count > 0) return;
+
+        await AddNewAddress();
+    }
+
+    private async Task AddNewAddress()
+    {
+        var modalReference = Modal.Show<AddressForm>("Adicione o endereço");
+
+        if (modalReference.Result.IsCompletedSuccessfully == false) return;
+
+        var formAddress = await GetResultingDataFromModal(modalReference);
+        addresses.Add(formAddress);
+
+        await OnChange.InvokeAsync();
+    }
+
+    private async void UpdateMainAddress(Address address)
+    {
+        if (address.MainAddress)
+        {
+            AddressService.SetMainAddress(address, addresses);
+        }
+
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task<Address> GetResultingDataFromModal(IModalReference modalReference)
+    {
+        var result = await modalReference.Result;
+        return result.Data as Address; 
+    }
+}

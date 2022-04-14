@@ -1,0 +1,90 @@
+﻿@using Restaurante.UI.Services
+@inject IAddressService AddressService
+@inject IAuthenticationService AuthenticationService
+
+<div>
+    @if (isInsertSucceeded == false)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="alert alert-danger col-12 col-lg-4 text-center" role="alert">
+                @insertErrorMessage
+            </div>
+        </div>
+    }
+    <EditForm Model="@formAddress" class="card card-body p-3" OnValidSubmit="RegisterAddress">
+        <DataAnnotationsValidator />
+        <div class="form-group p-2">
+            <label for="street" class="form-label">Rua</label>
+            <div class="">
+                <InputText class="form-control" id="street" @bind-Value="formAddress.Street" />
+                <ValidationMessage For="@(() => formAddress.Street)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <label for="number" class="form-label">Número</label>
+            <div class="">
+                <InputText class="form-control" id="number" @bind-Value="formAddress.Number" />
+                <ValidationMessage For="@(() => formAddress.Number)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <label for="username" class="form-label">Bairro</label>
+            <div class="">
+                <InputText class="form-control" id="username" @bind-Value="formAddress.Neighborhood" />
+                <ValidationMessage For="@(() => formAddress.Neighborhood)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <label for="city" class="form-label">Cidade</label>
+            <div class="">
+                <InputText class="form-control" id="city" @bind-Value="formAddress.City" />
+                <ValidationMessage For="@(() => formAddress.City)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <label for="state" class="form-label">UF</label>
+            <div class="">
+                <InputText class="form-control" id="state" @bind-Value="formAddress.State" />
+                <ValidationMessage For="@(() => formAddress.State)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <label for="cep" class="form-label">CEP</label>
+            <div class="">
+                <InputText class="form-control" id="cep" @bind-Value="formAddress.ZipCode" />
+                <ValidationMessage For="@(() => formAddress.ZipCode)" />
+            </div>
+        </div>
+        <div class="form-group p-2">
+            <div class="">
+                <InputCheckbox class="form-check-input" id="main-address" @bind-Value="formAddress.MainAddress" />
+            </div>
+            <label for="main-address" class="form-check-label">Endereço principal?</label>
+        </div>
+        <button type="submit" class="btn btn-dark">Submit</button>
+    </EditForm>
+</div>
+
+@code {
+    [CascadingParameter]
+    BlazoredModalInstance ModalInstance { get; set; }
+
+    private bool isInsertSucceeded = true;
+    private string insertErrorMessage = string.Empty;
+    private Address formAddress = new();
+
+    private async Task RegisterAddress()
+    {
+        formAddress.UserId = await AuthenticationService.GetUserIdAsync();
+
+        isInsertSucceeded = await AddressService.InsertAddress(formAddress);
+
+        if (isInsertSucceeded)
+        {
+            await ModalInstance.CloseAsync(ModalResult.Ok<Address>(formAddress));
+            return;
+        }
+
+        insertErrorMessage = "Ocorreu uma falha no registro do endereço. Tente novamente.";
+    }
+}

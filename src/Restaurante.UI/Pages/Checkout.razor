@@ -1,0 +1,45 @@
+﻿@page "/checkout"
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+
+
+<section class="d-flex justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 p-2">
+                <h4>Pedido</h4>
+
+                @if (order?.Items is not null)
+                {
+                    <ul class="list-group">
+                        @foreach (var item in order.Items)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @item.Product.Name
+                                <span class="badge badge-pill badge-dark">@item.Quantity</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 p-2">
+                <AddressComponent OnChange="StateHasChanged"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private Order? order;
+    private List<Address> addresses = null;
+    private bool isUserLoggedIn = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        order = await _localStorage.GetItemAsync<Order>(SessionVariables.ShoppingCartOrder);
+        StateHasChanged();
+    }
+}
