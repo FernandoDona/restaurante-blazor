@@ -5,10 +5,10 @@
 @inject IAuthenticationService AuthenticationService
 
 <h4>Endereços</h4>
-@if (addresses?.Count > 0)
+@if (Addresses?.Count > 0)
 {
     <ul class="list-group">
-        @foreach (var address in addresses)
+        @foreach (var address in Addresses)
         {
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
@@ -18,6 +18,7 @@
         }
     </ul>
 }
+
 <div class="d-flex justify-content-end">
     <button type="button" class="my-2 btn btn-dark btn-block" @onclick="AddNewAddress">Adicionar endereço</button>
 </div>
@@ -26,17 +27,25 @@
 @code {
     [CascadingParameter]
     public IModalService Modal { get; set; }
-    private List<Address> addresses = null;
+    [Parameter]
+    public List<Address> Addresses { get; set; }
     [Parameter]
     public EventCallback OnChange { get; set; }
+    [Parameter]
+    public EventCallback<List<Address>> AddressesChanged { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
         var userId = await AuthenticationService.GetUserIdAsync();
 
-        addresses = (await AddressService.GetAddressesByUserId(userId)).ToList();
+        Addresses = (await AddressService.GetAddressesByUserId(userId)).ToList();
 
-        if (addresses?.Count > 0) return;
+        if (Addresses?.Count > 0)
+        {
+            await AddressesChanged.InvokeAsync(Addresses);
+            return;
+        }
 
         await AddNewAddress();
     }
@@ -48,18 +57,27 @@
         if (modalReference.Result.IsCompletedSuccessfully == false) return;
 
         var formAddress = await GetResultingDataFromModal(modalReference);
-        addresses.Add(formAddress);
+        Addresses.Add(formAddress);
 
+        await AddressesChanged.InvokeAsync(Addresses);
         await OnChange.InvokeAsync();
+
+        ShowSuccessModal();
     }
 
-    private async void UpdateMainAddress(Address address)
+    private async void UpdateMainAddress(Address address, object mainAddress)
     {
-        if (address.MainAddress)
+        if ((bool)mainAddress)
         {
-            AddressService.SetMainAddress(address, addresses);
+            address.MainAddress = true;
         }
 
+        if (address.MainAddress)
+        {
+            AddressService.SetMainAddress(address, Addresses);
+        }
+
+        await AddressesChanged.InvokeAsync(Addresses);
         await OnChange.InvokeAsync();
     }
 
@@ -67,5 +85,12 @@
     {
         var result = await modalReference.Result;
         return result.Data as Address; 
+    }
+
+    private void ShowSuccessModal()
+    {
+        var modalParameters = new ModalParameters();
+        modalParameters.Add(nameof(SuccessModal.Title), "O endereço foi incluido com sucesso!");
+        Modal.Show<SuccessModal>(null, modalParameters);
     }
 }

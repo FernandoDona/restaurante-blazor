@@ -2,7 +2,7 @@
 using Restaurante.UI.HttpClients;
 using System.Security.Claims;
 
-namespace Restaurante.UI.Authentication;
+namespace Restaurante.UI.Services;
 
 public class AuthenticationService : IAuthenticationService
 {

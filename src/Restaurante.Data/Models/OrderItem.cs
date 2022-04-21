@@ -11,4 +11,12 @@ public class OrderItem
     public int ProductId { get; set; }
     public Product Product { get; set; }
     public int Quantity { get; set; }
+    public decimal Subtotal { 
+        get
+        {
+            if (Product is null) return 0;
+
+            return Product.Price * Quantity;
+        }
+    }
 }

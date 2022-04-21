@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Restaurante.Data.Data;
-public class OrderData
+public class OrderRepository : IOrderRepository
 {
     private readonly ISqlDataAccess _sqlDataAccess;
 
-    public OrderData(ISqlDataAccess sqlDataAccess)
+    public OrderRepository(ISqlDataAccess sqlDataAccess)
     {
         _sqlDataAccess = sqlDataAccess;
     }
@@ -19,7 +19,7 @@ public class OrderData
         var dictionary = new Dictionary<int, Order>();
 
         return _sqlDataAccess.QueryAsync<Order, OrderItem, Product, Category, Address, Order, dynamic>(
-            storedProcedure: "spOrders_GetAll", 
+            storedProcedure: "spOrders_GetAll",
             parameters: new { },
             mapping: (order, orderItem, product, category, address) =>
             {
@@ -85,4 +85,42 @@ public class OrderData
             },
             splitOn: "Quantity,Description,Name,Street");
     }
+
+    public async Task<int> InsertOrder(Order order)
+    {
+        order.CreatedAt = DateTime.UtcNow;
+        order.ClosedAt = null;
+
+        var parameters = new
+        {
+            Id = order.Id,
+            UserId = order.UserId,
+            AddressId = order.Address.Id,
+            Status = (int)order.Status,
+            TotalPrice = order.TotalPrice,
+            CreatedAt = order.CreatedAt,
+            ClosedAt = order.ClosedAt
+        };
+
+        return await _sqlDataAccess.QuerySingleAsync<int, dynamic>("spOrders_Insert", parameters);
+    }
+    public async Task InsertOrderItem(List<OrderItem> orderItems)
+    {
+        foreach (var item in orderItems)
+        {
+            var parameters = new
+            {
+                OrderId = item.OrderId,
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                Subtotal = item.Subtotal
+            };
+
+            await _sqlDataAccess.ExecuteAsync("spOrderItem_Insert", parameters);
+        }
+    }
+
+    
+
+    
 }

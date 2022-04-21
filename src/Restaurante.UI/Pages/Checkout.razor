@@ -1,5 +1,8 @@
 ﻿@page "/checkout"
-@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+@using Restaurante.UI.Services
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IOrderService OrderService
+@inject IAuthenticationService AuthenticationService
 
 
 <section class="d-flex justify-content-center">
@@ -24,22 +27,54 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-md-6 p-2">
-                <AddressComponent OnChange="StateHasChanged"/>
+                <AddressComponent @bind-Addresses=addresses OnChange="StateHasChanged"/>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 p-2">
+                <button class="btn btn-dark btn-lg w-100" @onclick="InsertOrder">Concluir pedido</button>
             </div>
         </div>
     </div>
 </section>
 
 @code {
+    [CascadingParameter]
+    public IModalService Modal { get; set; }
     private Order? order;
     private List<Address> addresses = null;
     private bool isUserLoggedIn = false;
+
+    private async void InsertOrder()
+    {
+        order.UserId = await AuthenticationService.GetUserIdAsync();
+        order.Address = addresses.Where(a => a.MainAddress == true).FirstOrDefault();
+        order.TotalPrice = OrderService.SumItemsPrice(order);
+
+        var insertSucceeded = await OrderService.InsertOrder(order);
+
+        if (insertSucceeded)
+        {
+            await LocalStorage.RemoveItemAsync(SessionVariables.ShoppingCartOrder);
+            ShowSuccessModal();
+        }
+
+        StateHasChanged();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
-        order = await _localStorage.GetItemAsync<Order>(SessionVariables.ShoppingCartOrder);
+        order = await LocalStorage.GetItemAsync<Order>(SessionVariables.ShoppingCartOrder);
         StateHasChanged();
+    }
+
+    private void ShowSuccessModal()
+    {
+        var modalParameters = new ModalParameters();
+        modalParameters.Add(nameof(SuccessModal.Title), "Pedido finalizado com sucesso!");
+        modalParameters.Add(nameof(SuccessModal.SubTitle), "O pedido logo estará pronto.");
+        Modal.Show<SuccessModal>(null, modalParameters);
     }
 }

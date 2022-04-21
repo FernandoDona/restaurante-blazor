@@ -13,6 +13,13 @@ public class SqlDataAccess : ISqlDataAccess
         _config = config;
     }
 
+    public async Task<T> QuerySingleAsync<T, U>(string storedProcedure, U parameters, string connectionStringKey = "RestauranteDB")
+    {
+        using (IDbConnection connection = new SqlConnection(_config.GetConnectionString(connectionStringKey)))
+
+        return await connection.QuerySingleAsync<T>(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<IEnumerable<T>> QueryAsync<T, U>(string storedProcedure, U parameters, string connectionStringKey = "RestauranteDB")
     {
         using (IDbConnection connection = new SqlConnection(_config.GetConnectionString(connectionStringKey)))

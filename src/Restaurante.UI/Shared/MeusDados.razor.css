@@ -1,0 +1,18 @@
+﻿.expanded-div {
+    position: absolute;
+    background-color: #f8f9fa;
+    top: 100%;
+    min-width: 10rem;
+    text-align: left;
+    float: left;
+    z-index: 1000;
+    padding: .5rem 0;
+    margin: .125rem 0 0;
+    font-size: 1rem;
+    color: #212529;
+    list-style: none;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: .25rem;
+    left: 0;
+}

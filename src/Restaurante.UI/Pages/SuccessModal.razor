@@ -1,0 +1,30 @@
+﻿
+<div id="success_tic" class="" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="">
+            <div class="page-body">
+                <div class="head">
+                    <h3 style="margin-top:5px;">@Title</h3>
+                    <h4>@SubTitle</h4>
+                </div>
+
+                <h1 style="text-align:center;">
+                    <div class="checkmark-circle">
+                        <div class="background"></div>
+                        <div class="checkmark draw"></div>
+                    </div>
+                </h1>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public string SubTitle { get; set; }
+}

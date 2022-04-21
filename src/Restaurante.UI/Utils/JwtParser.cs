@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Restaurante.UI.Authentication;
+namespace Restaurante.UI.Utils;
 
 public static class JwtParser
 {

@@ -1,5 +1,5 @@
 ﻿
-namespace Restaurante.UI.Authentication;
+namespace Restaurante.UI.Services;
 
 public interface IAuthenticationService
 {

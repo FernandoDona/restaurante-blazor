@@ -3,7 +3,7 @@ using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
-namespace Restaurante.UI.Authentication;
+namespace Restaurante.UI;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {

@@ -61,14 +61,17 @@ public class AddressService : IAddressService
     {
         foreach (var address in addresses)
         {
-            if (address.MainAddress == true)
+            if (address.MainAddress == true && address.Id != targetAddress.Id)
             {
                 address.MainAddress = false;
                 _addressRepository.UpdateAddress(address);
             }
 
-            if (address.Id == targetAddress.Id)
+            if (address.Id == targetAddress.Id) 
+            {
                 address.MainAddress = true;
+                _addressRepository.UpdateAddress(address);
+            }
         }
     }
 }
